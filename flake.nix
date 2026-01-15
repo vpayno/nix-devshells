@@ -85,7 +85,7 @@
             glow
             runme
             jq
-            taplo-cli
+            taplo
             tig
             toml-cli
             toml-sort
