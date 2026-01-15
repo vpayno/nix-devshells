@@ -113,20 +113,30 @@
             cargo-audit
             cargo-binutils
             cargo-bump
+            cargo-deb
+            cargo-deny
             cargo-edit
             cargo-flamegraph
+            cargo-fuzz
+            cargo-hack
             cargo-info
             cargo-license
+            cargo-lock
+            cargo-msrv
             cargo-outdated
             cargo-readme
+            cargo-seek
             cargo-sort
             cargo-spellcheck
             cargo-tarpaulin
             cargo-toml-lint
+            cargo-ui
             cargo-update
+            cargo-vet
             cargo-watch
             grcov
-            # rust-analyzer # is this in the overlay package?
+            rust-analyzer
+            rust-code-analysis
           ]
           ++ rustLinuxOnlyPkgs;
 
