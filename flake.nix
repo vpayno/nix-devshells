@@ -38,6 +38,25 @@
     // flake-utils.lib.eachDefaultSystem (
       system:
       let
+        context = {
+          systems = import systems; # get the list of systems
+
+          # https://releases.rs/
+          rustVersions = [
+            "1.77.2"
+            "1.78.0"
+            "1.79.0"
+            "1.80.1"
+            "1.81.0"
+            "1.82.0"
+            "1.83.0"
+            "1.84.1"
+            "1.85.1"
+            "1.86.0"
+          ];
+
+          rustLabels = builtins.map getShellLabel context.rustVersions;
+        };
 
         overlays = [ (import rust-overlay) ];
 
@@ -119,37 +138,61 @@
           rustc --version
         '';
 
-        rust-stable = with pkgs; {
-          latest = rust-bin.stable.latest.default;
-          "1_86" = rust-bin.stable "1.86.0".default; # rust-bin.stable."version".minimal
+        getShellLabel =
+          packageVersion:
+          let
+            versionParts = pkgs.lib.strings.splitString "." packageVersion;
+          in
+          pkgs.lib.strings.concatStringsSep "_" (pkgs.lib.lists.take 2 versionParts);
+
+        defineRustPackage =
+          packageVersion: with pkgs; [
+            rust-bin.stable."${packageVersion}".default # or .minimal
+          ];
+
+        defineRustDevShell =
+          rustVersion:
+          let
+            shellLabel = getShellLabel rustVersion;
+            pname = "rust";
+            version = "${rustVersion}";
+            name = "${pname}-${shellLabel}";
+          in
+          pkgs.mkShell rec {
+            inherit pname version name;
+
+            # to be overridden
+            extraPackages = [ ];
+
+            buildInputs =
+              rustDevShellBuildInputs
+              ++ commonDevShellBuildInputs
+              ++ extraPackages
+              ++ [ pkgs.rust-bin.stable."${rustVersion}".default ];
+
+            RUST_SRC_PATH = pkgs.rustPlatform.rustLibSrc;
+            RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
+
+            shellHook = ''
+              ${pkgs.lib.getExe pkgs.cowsay} "Welcome to the #${name} (${version}) devShell!"
+              ${rustDevShellHookCommon}
+            '';
+          };
+
+        getRustDevShell = rustVersion: {
+          "rust-${getShellLabel rustVersion}" = defineRustDevShell rustVersion;
         };
+
+        extend = lhs: rhs: lhs // rhs;
+
+        tmpShells = { };
+
+        getRustDevShells = pkgs.lib.foldl extend tmpShells (
+          builtins.map (name: getRustDevShell name) context.rustVersions
+        );
       in
       {
-        devShells = {
-          "rust-current" = pkgs.mkShell {
-            buildInputs = rustDevShellBuildInputs ++ commonDevShellBuildInputs ++ [ rust-stable.latest ];
-
-            RUST_SRC_PATH = pkgs.rustPlatform.rustLibSrc;
-            RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
-
-            shellHook = ''
-              ${pkgs.lib.getExe pkgs.cowsay} "Welcome to the #rust-current devShell!"
-              ${rustDevShellHookCommon}
-            '';
-          };
-
-          "rust-1_86" = pkgs.mkShell {
-            buildInputs = rustDevShellBuildInputs ++ commonDevShellBuildInputs ++ [ rust-stable.latest ];
-
-            RUST_SRC_PATH = pkgs.rustPlatform.rustLibSrc;
-            RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
-
-            shellHook = ''
-              ${pkgs.lib.getExe pkgs.cowsay} "Welcome to the #rust-1_86 devShell!"
-              ${rustDevShellHookCommon}
-            '';
-          };
-        };
+        devShells = getRustDevShells;
       }
     );
 }
