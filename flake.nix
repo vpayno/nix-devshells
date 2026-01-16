@@ -42,17 +42,15 @@
           systems = import systems; # get the list of systems
 
           # https://releases.rs/
+          # can't decide if I want all the versions from packages.x86_64-linux.rust_1_x or just a select few
+          # just adding the last 5 versions for now
           rustVersions = [
-            "1.77.2"
-            "1.78.0"
-            "1.79.0"
-            "1.80.1"
-            "1.81.0"
-            "1.82.0"
-            "1.83.0"
-            "1.84.1"
-            "1.85.1"
             "1.86.0"
+            "1.88.0"
+            "1.89.0"
+            "1.90.0"
+            "1.91.1"
+            "1.92.0"
           ];
 
           rustLabels = builtins.map getShellLabel context.rustVersions;
