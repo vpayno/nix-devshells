@@ -360,7 +360,33 @@
         };
       in
       {
-        devShells = getRustDevShells;
+        devShells = {
+          default = pkgs.mkShell rec {
+            packages =
+              with pkgs;
+              [
+                bashInteractive
+              ]
+              ++ [
+                toolBundle
+              ];
+
+            shellMotd = ''
+              Starting ${name}
+
+              nix develop .#default shell...
+            '';
+
+            shellHook = ''
+              ${pkgs.lib.getExe pkgs.cowsay} "${shellMotd}"
+              printf "\n"
+
+              ${pkgs.lib.getExe pkgs.tree} "${toolBundle}"
+              printf "\n"
+            '';
+          };
+        }
+        // getRustDevShells;
 
         packages = {
           default = toolBundle;
