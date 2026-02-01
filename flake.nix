@@ -368,6 +368,10 @@
               with pkgs;
               [
                 bashInteractive
+                cargo
+                clippy
+                rustc
+                rustfmt
               ]
               ++ [
                 toolBundle
