@@ -266,8 +266,6 @@
           export CARGO_HOME="$PWD/.cargo"
           [[ -d $CARGO_HOME/bin ]] && mkdir -pv "$CARGO_HOME/bin"
           export PATH="$CARGO_HOME/bin:$PATH"
-
-          rustc --version
         '';
 
         getShellLabel =
@@ -316,6 +314,9 @@
             shellHook = ''
               ${pkgs.lib.getExe pkgs.cowsay} "Welcome to the #${name} (${version}) devShell!"
               ${rustDevShellHookCommon}
+
+              $(rustc --version)
+              printf "\n"
             '';
           };
 
@@ -383,6 +384,9 @@
               printf "\n"
 
               ${pkgs.lib.getExe pkgs.tree} "${toolBundle}"
+              printf "\n"
+
+              rustc --version
               printf "\n"
             '';
           };
