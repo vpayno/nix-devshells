@@ -258,6 +258,7 @@
             grcov
             rust-analyzer
             rust-code-analysis
+            rustycli
           ]
           ++ rustLinuxOnlyPkgs;
 
