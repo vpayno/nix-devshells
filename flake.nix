@@ -52,12 +52,13 @@
           # can't decide if I want all the versions from packages.x86_64-linux.rust_1_x or just a select few
           # just adding the last 5 versions for now
           rustVersions = [
+            "1.87.0"
             "1.88.0"
             "1.89.0"
             "1.90.0"
             "1.91.1"
             "1.92.0"
-            "1.93.0"
+            "1.93.1"
           ];
 
           rustLabels = builtins.map getShellLabel context.rustVersions;
@@ -315,7 +316,7 @@
               ${pkgs.lib.getExe pkgs.cowsay} "Welcome to the #${name} (${version}) devShell!"
               ${rustDevShellHookCommon}
 
-              $(rustc --version)
+              rustc --version
               printf "\n"
             '';
           };
