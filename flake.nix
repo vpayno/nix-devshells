@@ -283,7 +283,9 @@
               gnugrep
             ];
             text = ''
-              git ls-remote --ref --tags git@github.com:rust-lang/rust.git | sed -r -e 's:.*tags/::g' | grep -E '^[0-9]+[.][0-9]+[.][0-9]+$' | sort -Vr | head
+              declare -i count="''${1:-10}"
+              git ls-remote --ref --tags git@github.com:rust-lang/rust.git | sed -r -e 's:.*tags/::g' |
+                grep -E '^[0-9]+[.][0-9]+[.][0-9]+$' | sort -Vr | head -n "''${count}"
             '';
             meta = scriptMetadata.showLatestRustVersions;
           };
