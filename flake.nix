@@ -21,6 +21,21 @@
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    nixpkgs-2611.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    nixpkgs-2605.url = "github:nixos/nixpkgs?ref=nixos-26.05";
+    nixpkgs-2511.url = "github:nixos/nixpkgs?ref=nixos-25.11";
+    nixpkgs-2505.url = "github:nixos/nixpkgs?ref=nixos-25.05";
+    nixpkgs-2411.url = "github:nixos/nixpkgs?ref=nixos-24.11";
+    nixpkgs-2405.url = "github:nixos/nixpkgs?ref=nixos-24.05";
+    nixpkgs-2311.url = "github:nixos/nixpkgs?ref=nixos-23.11";
+    nixpkgs-2305.url = "github:nixos/nixpkgs?ref=nixos-23.05";
+    nixpkgs-2211.url = "github:nixos/nixpkgs?ref=nixos-22.11";
+    nixpkgs-2205.url = "github:nixos/nixpkgs?ref=nixos-22.05";
+    nixpkgs-2111.url = "github:nixos/nixpkgs?ref=nixos-21.11";
+    nixpkgs-2105.url = "github:nixos/nixpkgs?ref=nixos-21.05";
+    nixpkgs-2009.url = "github:nixos/nixpkgs?ref=nixos-20.09";
+    nixpkgs-2003.url = "github:nixos/nixpkgs?ref=nixos-20.03";
   };
 
   outputs =
@@ -32,7 +47,7 @@
       treefmt-conf,
       rust-overlay,
       ...
-    }:
+    }@inputs:
     flake-utils.lib.eachDefaultSystem (system: {
       formatter = treefmt-conf.formatter.${system};
     })
@@ -49,6 +64,7 @@
           systems = import systems; # get the list of systems
 
           # https://releases.rs/
+          # https://endoflife.date/rust
           # can't decide if I want all the versions from packages.x86_64-linux.rust_1_x or just a select few
           # just adding the last 10 versions for now
           rustVersions = [
@@ -64,13 +80,88 @@
             "1.97.1"
           ];
 
-          rustLabels = builtins.map getRustLabel context.rustVersions;
+          rustLabels = builtins.map getVersionLabel context.rustVersions;
+
+          # https://github.com/openssl/openssl/releases
+          # https://endoflife.date/openssl
+          opensslVersions = [
+            "4.0.1"
+            "3.6.3"
+            "3.5.7" # LTS, EOL 2030-04
+            "3.4.6"
+            "3.3.7"
+            "3.2.5"
+            "3.1.8"
+            "3.0.21" # LTS, EOL 2026-09
+            "1.1.1w" # LTS, EOL 2023-09
+          ];
+
+          opensslLabels = builtins.map getVersionLabel context.opensslVersions;
         };
 
         overlays = [ (import rust-overlay) ];
 
         pkgs = import nixpkgs {
           inherit system overlays;
+        };
+
+        pkgs-2611 = pkgs;
+
+        pkgs-2605 = import inputs.nixpkgs-2605 {
+          inherit system;
+          config = {
+            permittedInsecurePackages = [
+              "openssl-1.1.1w" # EOL 2023-09
+            ];
+          };
+        };
+
+        pkgs-2511 = import inputs.nixpkgs-2511 {
+          inherit system;
+        };
+
+        pkgs-2505 = import inputs.nixpkgs-2505 {
+          inherit system;
+        };
+
+        pkgs-2411 = import inputs.nixpkgs-2411 {
+          inherit system;
+        };
+
+        pkgs-2405 = import inputs.nixpkgs-2405 {
+          inherit system;
+        };
+
+        pkgs-2311 = import inputs.nixpkgs-2311 {
+          inherit system;
+        };
+
+        pkgs-2305 = import inputs.nixpkgs-2305 {
+          inherit system;
+        };
+
+        pkgs-2211 = import inputs.nixpkgs-2211 {
+          inherit system;
+        };
+
+        pkgs-2205 = import inputs.nixpkgs-2205 {
+          inherit system;
+        };
+
+        pkgs-2111 = import inputs.nixpkgs-2111 {
+          inherit system;
+        };
+
+        pkgs-2105 = import inputs.nixpkgs-2105 {
+          inherit system;
+        };
+
+        pkgs-2009 = import inputs.nixpkgs-2009 {
+          inherit system;
+        };
+
+        pkgs-2003 = import inputs.nixpkgs-2003 {
+          inherit system;
         };
 
         flakeMetaData = {
@@ -277,7 +368,7 @@
           printf "\n"
         '';
 
-        getRustLabel =
+        getVersionLabel =
           packageVersion:
           let
             versionParts = pkgs.lib.strings.splitString "." packageVersion;
@@ -291,19 +382,34 @@
         defineRustDevShell =
           rustVersion:
           let
-            shellLabel = getRustLabel rustVersion;
+            shellLabel = getVersionLabel rustVersion;
             extraPackages = [ ]; # to be overridden
             rustBuildInputs =
               rustDevShellBuildInputs
               ++ commonDevShellBuildInputs
-              ++ extraPackages
               ++ [ pkgs.rust-bin.stable."${rustVersion}".default ];
             myShellHook = rustDevShellHookCommon;
             myPackages = [
               toolBundle
-            ];
+            ]
+            ++ extraPackages;
           in
           mkShell "rust" rustVersion shellLabel myPackages rustBuildInputs myShellHook;
+
+        defineOpensslDevShell =
+          opensslVersion:
+          let
+            versionLabel = getVersionLabel opensslVersion;
+            extraPackages = [ ]; # to be overridden
+            opensslBuildInputs = [ ];
+            myShellHook = rustDevShellHookCommon;
+            myPackages = [
+              toolBundle
+              self.packages.${system}."openssl-${versionLabel}"
+            ]
+            ++ extraPackages;
+          in
+          mkShell "openssl" opensslVersion versionLabel myPackages opensslBuildInputs myShellHook;
 
         mkShell =
           myName: myVersion: myLabel: myPackages: myBuildInputs: myShellHook:
@@ -326,7 +432,7 @@
               ++ myPackages;
             nativeBuildInputs = myBuildInputs;
             SHELLMOTD = ''
-              Welcome to nix develop .#{name} devShell...
+              Welcome to nix develop ${flake_repo_url}#${myName}-${myLabel} devShell...
             '';
             shellHook = ''
               ${pkgs.lib.getExe pkgs.cowsay} "${SHELLMOTD}"
@@ -336,11 +442,15 @@
           };
 
         getRustDevShell = rustVersion: {
-          "rust-${getRustLabel rustVersion}" = defineRustDevShell rustVersion;
+          "rust-${getVersionLabel rustVersion}" = defineRustDevShell rustVersion;
         };
 
         getRustPackage = rustVersion: {
-          "rust-${getRustLabel rustVersion}" = defineRustPackage rustVersion;
+          "rust-${getVersionLabel rustVersion}" = defineRustPackage rustVersion;
+        };
+
+        getOpensslDevShell = opensslVersion: {
+          "openssl-${getVersionLabel opensslVersion}" = defineOpensslDevShell opensslVersion;
         };
 
         extend = lhs: rhs: lhs // rhs;
@@ -355,6 +465,65 @@
         getRustPackages = pkgs.lib.foldl extend tmpPackages (
           builtins.map (name: getRustPackage name) context.rustVersions
         );
+
+        getOpensslDevShells = pkgs.lib.foldl extend tmpShells (
+          builtins.map (name: getOpensslDevShell name) context.opensslVersions
+        );
+
+        opensslPackages = {
+          openssl-lts = self.packages.${system}."openssl-3_5";
+          openssl-4_0 = pkgs-2611.openssl_4_0; # 4.0.1
+          openssl-3_6 = pkgs-2611.openssl_3_6; # 3.6.3
+          openssl-3_5 = pkgs-2611.openssl_3_5; # 3.5.7
+          openssl-3_4 = pkgs-2505.openssl_3_4; # 3.4.3
+          openssl-3_3 = pkgs-2411.openssl_3_3; # 3.3.3
+          openssl-3_2 = pkgs-2405.openssl_3_2; # 3.2.2
+        }
+        // (
+          if pkgs.stdenv.isLinux then
+            {
+              openssl-3_1 = pkgs-2311.openssl_3_1; # 3.1.6
+            }
+          else
+            { }
+        )
+        // {
+          openssl-3_0 = pkgs-2605.openssl_3; # 3.0.21
+          openssl-1_1 = pkgs-2605.openssl_1_1; # 1.1.1w
+        };
+
+        opensslBundle = pkgs.buildEnv {
+          name = "openssl-bundle";
+          buildInputs = with pkgs; [
+          ];
+          paths = [
+          ];
+          pathsToLink = [
+          ];
+          postBuild = ''
+            mkdir -pv "$out/bin"
+            cd $out/bin || exit
+            for p in ${self.packages.${system}.openssl-4_0}/bin/*; do ln -sv "$p" $(basename "$p")-4_0; done
+            for p in ${self.packages.${system}.openssl-3_6}/bin/*; do ln -sv "$p" $(basename "$p")-3.6; done
+            for p in ${self.packages.${system}.openssl-3_5}/bin/*; do ln -sv "$p" $(basename "$p")-3.5; done
+            for p in ${self.packages.${system}.openssl-3_4}/bin/*; do ln -sv "$p" $(basename "$p")-3.4; done
+            for p in ${self.packages.${system}.openssl-3_3}/bin/*; do ln -sv "$p" $(basename "$p")-3.3; done
+            for p in ${self.packages.${system}.openssl-3_2}/bin/*; do ln -sv "$p" $(basename "$p")-3.2; done
+          ''
+          + (
+            if pkgs.stdenv.isLinux then
+              ''
+                for p in ${self.packages.${system}.openssl-3_1}/bin/*; do ln -sv "$p" $(basename "$p")-3.1; done
+              ''
+            else
+              ""
+          )
+          + ''
+            for p in ${self.packages.${system}.openssl-3_0}/bin/*; do ln -sv "$p" $(basename "$p")-3.0; done
+            for p in ${self.packages.${system}.openssl-1_1}/bin/*; do ln -sv "$p" $(basename "$p")-1.1; done
+            ls -lh "$out/bin"
+          '';
+        };
 
         toolBundle = pkgs.buildEnv {
           name = "${name}-bundle";
@@ -394,11 +563,13 @@
                 bashInteractive
                 cargo
                 clippy
+                openssl
                 rustc
                 rustfmt
               ]
               ++ [
                 toolBundle
+                opensslBundle
               ];
 
             shellMotd = ''
@@ -414,18 +585,26 @@
               ${pkgs.lib.getExe pkgs.tree} "${toolBundle}"
               printf "\n"
 
+              openssl version
               rustc --version
+              printf "\n"
+
+              ls "${opensslBundle}"/bin | sort --field-separator=- --key=2,2 | column --fillrows --output-width=79
               printf "\n"
             '';
           };
+          openssl-lts = self.devShells.${system}."openssl-3_5";
         }
-        // getRustDevShells;
+        // getRustDevShells
+        // getOpensslDevShells;
 
         packages = {
           default = toolBundle;
+          openssl-bundle = opensslBundle;
         }
         // generatePackagesFromScripts
-        // getRustPackages;
+        // getRustPackages
+        // opensslPackages;
 
         apps = {
           default = self.apps.${system}.flakeShowUsage;
