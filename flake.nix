@@ -267,9 +267,14 @@
           ++ rustLinuxOnlyPkgs;
 
         rustDevShellHookCommon = ''
+          export RUST_SRC_PATH="${pkgs.rustPlatform.rustLibSrc}";
+          export RUSTC_WRAPPER="${pkgs.sccache}/bin/sccache";
           export CARGO_HOME="$PWD/.cargo"
           [[ -d $CARGO_HOME/bin ]] && mkdir -pv "$CARGO_HOME/bin"
           export PATH="$CARGO_HOME/bin:$PATH"
+
+          rustc --version
+          printf "\n"
         '';
 
         getRustLabel =
@@ -287,39 +292,46 @@
           rustVersion:
           let
             shellLabel = getRustLabel rustVersion;
-            pname = "rust";
-            version = "${rustVersion}";
-            name = "${pname}-${shellLabel}";
-          in
-          pkgs.mkShell rec {
-            inherit pname version name;
-
-            # to be overridden
-            extraPackages = [ ];
-
-            packages =
-              with pkgs;
-              [
-              ]
-              ++ [
-                toolBundle
-              ];
-
-            buildInputs =
+            extraPackages = [ ]; # to be overridden
+            rustBuildInputs =
               rustDevShellBuildInputs
               ++ commonDevShellBuildInputs
               ++ extraPackages
               ++ [ pkgs.rust-bin.stable."${rustVersion}".default ];
+            myShellHook = rustDevShellHookCommon;
+            myPackages = [
+              toolBundle
+            ];
+          in
+          mkShell "rust" rustVersion shellLabel myPackages rustBuildInputs myShellHook;
 
-            RUST_SRC_PATH = pkgs.rustPlatform.rustLibSrc;
-            RUSTC_WRAPPER = "${pkgs.sccache}/bin/sccache";
-
+        mkShell =
+          myName: myVersion: myLabel: myPackages: myBuildInputs: myShellHook:
+          pkgs.mkShell rec {
+            shellLabel = myLabel;
+            pname = myName;
+            version = myVersion;
+            name = "${pname}-${myLabel}";
+            packages =
+              with pkgs;
+              [
+                bashInteractive
+                coreutils
+                findutils
+                gawk
+                gnugrep
+                patchutils
+                util-linux
+              ]
+              ++ myPackages;
+            nativeBuildInputs = myBuildInputs;
+            SHELLMOTD = ''
+              Welcome to nix develop .#{name} devShell...
+            '';
             shellHook = ''
-              ${pkgs.lib.getExe pkgs.cowsay} "Welcome to the #${name} (${version}) devShell!"
-              ${rustDevShellHookCommon}
-
-              rustc --version
+              ${pkgs.lib.getExe pkgs.cowsay} "${SHELLMOTD}"
               printf "\n"
+              ${myShellHook}
             '';
           };
 
