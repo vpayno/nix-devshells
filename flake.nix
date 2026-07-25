@@ -39,11 +39,11 @@
     // flake-utils.lib.eachDefaultSystem (
       system:
       let
-        pname = "nix-misc-tools";
+        pname = "nix-devshells";
         version = "20260723.0.0";
         name = "${pname}-${version}";
 
-        flake_repo_url = "github:vpayno/nix-misc-tools";
+        flake_repo_url = "github:vpayno/nix-devshells";
 
         context = {
           systems = import systems; # get the list of systems
