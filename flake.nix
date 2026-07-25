@@ -64,7 +64,7 @@
             "1.97.1"
           ];
 
-          rustLabels = builtins.map getShellLabel context.rustVersions;
+          rustLabels = builtins.map getRustLabel context.rustVersions;
         };
 
         overlays = [ (import rust-overlay) ];
@@ -272,7 +272,7 @@
           export PATH="$CARGO_HOME/bin:$PATH"
         '';
 
-        getShellLabel =
+        getRustLabel =
           packageVersion:
           let
             versionParts = pkgs.lib.strings.splitString "." packageVersion;
@@ -280,14 +280,13 @@
           pkgs.lib.strings.concatStringsSep "_" (pkgs.lib.lists.take 2 versionParts);
 
         defineRustPackage =
-          packageVersion: with pkgs; [
-            rust-bin.stable."${packageVersion}".default # or .minimal
-          ];
+          packageVersion: pkgs.rust-bin.stable."${packageVersion}".default # or .minimal
+        ;
 
         defineRustDevShell =
           rustVersion:
           let
-            shellLabel = getShellLabel rustVersion;
+            shellLabel = getRustLabel rustVersion;
             pname = "rust";
             version = "${rustVersion}";
             name = "${pname}-${shellLabel}";
@@ -325,15 +324,24 @@
           };
 
         getRustDevShell = rustVersion: {
-          "rust-${getShellLabel rustVersion}" = defineRustDevShell rustVersion;
+          "rust-${getRustLabel rustVersion}" = defineRustDevShell rustVersion;
+        };
+
+        getRustPackage = rustVersion: {
+          "rust-${getRustLabel rustVersion}" = defineRustPackage rustVersion;
         };
 
         extend = lhs: rhs: lhs // rhs;
 
         tmpShells = { };
+        tmpPackages = { };
 
         getRustDevShells = pkgs.lib.foldl extend tmpShells (
           builtins.map (name: getRustDevShell name) context.rustVersions
+        );
+
+        getRustPackages = pkgs.lib.foldl extend tmpPackages (
+          builtins.map (name: getRustPackage name) context.rustVersions
         );
 
         toolBundle = pkgs.buildEnv {
@@ -404,7 +412,8 @@
         packages = {
           default = toolBundle;
         }
-        // generatePackagesFromScripts;
+        // generatePackagesFromScripts
+        // getRustPackages;
 
         apps = {
           default = self.apps.${system}.flakeShowUsage;
