@@ -629,7 +629,7 @@
             shellMotd = ''
               Starting ${name}
 
-              nix develop .#default shell...
+              nix develop ${flake_repo_url}#default shell..
             '';
 
             shellHook = ''
