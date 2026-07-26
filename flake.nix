@@ -570,6 +570,10 @@
           '';
         };
 
+        goPackages = {
+          go-1_26 = pkgs.go;
+        };
+
         openjdkPackages = {
           openjdk8 = pkgs.openjdk8_headless;
           openjdk11 = pkgs.openjdk11_headless;
@@ -616,6 +620,7 @@
                 bashInteractive
                 cargo
                 clippy
+                go
                 openjdk25_headless
                 openssl
                 rustc
@@ -639,6 +644,8 @@
               ${pkgs.lib.getExe pkgs.tree} "${toolBundle}"
               printf "\n"
 
+              go version
+              printf "\n"
               java -version
               printf "\n"
               openssl version
@@ -659,6 +666,7 @@
         packages = {
           default = toolBundle;
           openssl-bundle = opensslBundle;
+          inherit (pkgs) go;
         }
         // generatePackagesFromScripts
         // getRustPackages
