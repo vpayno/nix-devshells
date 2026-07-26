@@ -55,7 +55,7 @@
       system:
       let
         pname = "nix-devshells";
-        version = "20260725.0.1";
+        version = "20260725.0.2";
         name = "${pname}-${version}";
 
         flake_repo_url = "github:vpayno/nix-devshells";
@@ -97,6 +97,16 @@
           ];
 
           opensslLabels = builtins.map getVersionLabel context.opensslVersions;
+
+          openjdkVersions = [
+            "8"
+            "11"
+            "17"
+            "21"
+            "25"
+          ];
+
+          openjdkLabels = builtins.map getVersionLabel context.openjdkVersions;
         };
 
         overlays = [ (import rust-overlay) ];
@@ -370,6 +380,16 @@
           printf "\n"
         '';
 
+        opensslDevShellHookCommon = ''
+          openssl version
+          printf "\n"
+        '';
+
+        openjdkDevShellHookCommon = ''
+          java -version
+          printf "\n"
+        '';
+
         getVersionLabel =
           packageVersion:
           let
@@ -404,7 +424,7 @@
             versionLabel = getVersionLabel opensslVersion;
             extraPackages = [ ]; # to be overridden
             opensslBuildInputs = [ ];
-            myShellHook = rustDevShellHookCommon;
+            myShellHook = opensslDevShellHookCommon;
             myPackages = [
               toolBundle
               self.packages.${system}."openssl-${versionLabel}"
@@ -412,6 +432,21 @@
             ++ extraPackages;
           in
           mkShell "openssl" opensslVersion versionLabel myPackages opensslBuildInputs myShellHook;
+
+        defineOpenjdkDevShell =
+          openjdkVersion:
+          let
+            versionLabel = getVersionLabel openjdkVersion;
+            extraPackages = [ ]; # to be overridden
+            openjdkBuildInputs = [ ];
+            myShellHook = openjdkDevShellHookCommon;
+            myPackages = [
+              toolBundle
+              self.packages.${system}."openjdk${versionLabel}"
+            ]
+            ++ extraPackages;
+          in
+          mkShell "openjdk" openjdkVersion versionLabel myPackages openjdkBuildInputs myShellHook;
 
         mkShell =
           myName: myVersion: myLabel: myPackages: myBuildInputs: myShellHook:
@@ -455,6 +490,10 @@
           "openssl-${getVersionLabel opensslVersion}" = defineOpensslDevShell opensslVersion;
         };
 
+        getOpenjdkDevShell = openjdkVersion: {
+          "openjdk-${getVersionLabel openjdkVersion}" = defineOpenjdkDevShell openjdkVersion;
+        };
+
         extend = lhs: rhs: lhs // rhs;
 
         tmpShells = { };
@@ -470,6 +509,10 @@
 
         getOpensslDevShells = pkgs.lib.foldl extend tmpShells (
           builtins.map (name: getOpensslDevShell name) context.opensslVersions
+        );
+
+        getOpenjdkDevShells = pkgs.lib.foldl extend tmpShells (
+          builtins.map (name: getOpenjdkDevShell name) context.openjdkVersions
         );
 
         opensslPackages = {
@@ -527,6 +570,14 @@
           '';
         };
 
+        openjdkPackages = {
+          openjdk8 = pkgs.openjdk8_headless;
+          openjdk11 = pkgs.openjdk11_headless;
+          openjdk17 = pkgs.openjdk17_headless;
+          openjdk21 = pkgs.openjdk21_headless;
+          openjdk25 = pkgs.openjdk25_headless;
+        };
+
         toolBundle = pkgs.buildEnv {
           name = "${name}-bundle";
           paths = toolScripts;
@@ -565,6 +616,7 @@
                 bashInteractive
                 cargo
                 clippy
+                openjdk25_headless
                 openssl
                 rustc
                 rustfmt
@@ -587,7 +639,10 @@
               ${pkgs.lib.getExe pkgs.tree} "${toolBundle}"
               printf "\n"
 
+              java -version
+              printf "\n"
               openssl version
+              printf "\n"
               rustc --version
               printf "\n"
 
@@ -598,7 +653,8 @@
           openssl-lts = self.devShells.${system}."openssl-3_5";
         }
         // getRustDevShells
-        // getOpensslDevShells;
+        // getOpensslDevShells
+        // getOpenjdkDevShells;
 
         packages = {
           default = toolBundle;
@@ -606,7 +662,8 @@
         }
         // generatePackagesFromScripts
         // getRustPackages
-        // opensslPackages;
+        // opensslPackages
+        // openjdkPackages;
 
         apps = {
           default = self.apps.${system}.flakeShowUsage;

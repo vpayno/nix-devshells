@@ -20,14 +20,18 @@ Example output:
 
 ```text
 $ nix run .#default
-
-Available nix-devshells-20260725.0.1 flake commands:
+Available nix-devshells-20260725.0.2 flake commands:
 
   nix run .#flakeShowUsage | .#default     # this message
 
   nix run .#showLatestRustVersions         # Shows the list of the latest Rust versions from the GitHub repo
 
   nix develop .#default                    # nix-shell
+  nix develop .#openjdk-11                 # openjdk-11
+  nix develop .#openjdk-17                 # openjdk-17
+  nix develop .#openjdk-21                 # openjdk-21
+  nix develop .#openjdk-25                 # openjdk-25
+  nix develop .#openjdk-8                  # openjdk-8
   nix develop .#openssl-1_1                # openssl-1_1
   nix develop .#openssl-3_0                # openssl-3_0
   nix develop .#openssl-3_1                # openssl-3_1
