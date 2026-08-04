@@ -94,6 +94,7 @@
             "3.1.8"
             "3.0.21" # LTS, EOL 2026-09
             "1.1.1w" # LTS, EOL 2023-09
+            "1.0.2u" # LTS, EOL 2019-12
           ];
 
           opensslLabels = builtins.map getVersionLabel context.opensslVersions;
@@ -160,6 +161,11 @@
 
         pkgs-2111 = import inputs.nixpkgs-2111 {
           inherit system;
+          config = {
+            permittedInsecurePackages = [
+              "openssl-1.0.2u" # EOL 2019-12
+            ];
+          };
         };
 
         pkgs-2105 = import inputs.nixpkgs-2105 {
@@ -535,6 +541,7 @@
         // {
           openssl-3_0 = pkgs-2605.openssl_3; # 3.0.21
           openssl-1_1 = pkgs-2605.openssl_1_1; # 1.1.1w
+          openssl-1_0 = pkgs-2111.openssl_1_0_2; # 1.0.2u
         };
 
         opensslBundle = pkgs.buildEnv {
@@ -566,6 +573,7 @@
           + ''
             for p in ${self.packages.${system}.openssl-3_0}/bin/*; do ln -sv "$p" $(basename "$p")-3.0; done
             for p in ${self.packages.${system}.openssl-1_1}/bin/*; do ln -sv "$p" $(basename "$p")-1.1; done
+            for p in ${self.packages.${system}.openssl-1_0}/bin/*; do ln -sv "$p" $(basename "$p")-1.0; done
             ls -lh "$out/bin"
           '';
         };
