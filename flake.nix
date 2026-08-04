@@ -55,7 +55,7 @@
       system:
       let
         pname = "nix-devshells";
-        version = "20260725.0.2";
+        version = "20260803.0.0";
         name = "${pname}-${version}";
 
         flake_repo_url = "github:vpayno/nix-devshells";
