@@ -333,7 +333,7 @@
 
         rustLinuxOnlyPkgs =
           with pkgs;
-          if stdenv.isLinux then
+          if stdenv.hostPlatform.isLinux then
             [
               cargo-llvm-cov
             ]
@@ -531,7 +531,7 @@
           openssl-3_2 = pkgs-2405.openssl_3_2; # 3.2.2
         }
         // (
-          if pkgs.stdenv.isLinux then
+          if pkgs.stdenv.hostPlatform.isLinux then
             {
               openssl-3_1 = pkgs-2311.openssl_3_1; # 3.1.6
             }
@@ -563,7 +563,7 @@
             for p in ${self.packages.${system}.openssl-3_2}/bin/*; do ln -sv "$p" $(basename "$p")-3.2; done
           ''
           + (
-            if pkgs.stdenv.isLinux then
+            if pkgs.stdenv.hostPlatform.isLinux then
               ''
                 for p in ${self.packages.${system}.openssl-3_1}/bin/*; do ln -sv "$p" $(basename "$p")-3.1; done
               ''
