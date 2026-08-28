@@ -630,7 +630,7 @@
                 clippy
                 go
                 openjdk25_headless
-                openssl
+                openssl_3_5
                 rustc
                 rustfmt
               ]
