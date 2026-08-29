@@ -446,26 +446,26 @@
         defineClangPackage = packageVersion: pkgs."clang_${packageVersion}";
 
         defineRustDevShell =
-          rustVersion:
+          packageVersion:
           let
-            shellLabel = getVersionLabel rustVersion;
+            shellLabel = getVersionLabel packageVersion;
             extraPackages = [ ]; # to be overridden
             rustBuildInputs =
               rustDevShellBuildInputs
               ++ commonDevShellBuildInputs
-              ++ [ pkgs.rust-bin.stable."${rustVersion}".default ];
+              ++ [ pkgs.rust-bin.stable."${packageVersion}".default ];
             myShellHook = rustDevShellHookCommon;
             myPackages = [
               toolBundle
             ]
             ++ extraPackages;
           in
-          mkShell "rust" rustVersion shellLabel myPackages rustBuildInputs myShellHook;
+          mkShell "rust" packageVersion shellLabel myPackages rustBuildInputs myShellHook;
 
         defineOpensslDevShell =
-          opensslVersion:
+          packageVersion:
           let
-            versionLabel = getVersionLabel opensslVersion;
+            versionLabel = getVersionLabel packageVersion;
             extraPackages = [ ]; # to be overridden
             opensslBuildInputs = [ ];
             myShellHook = opensslDevShellHookCommon;
@@ -475,12 +475,12 @@
             ]
             ++ extraPackages;
           in
-          mkShell "openssl" opensslVersion versionLabel myPackages opensslBuildInputs myShellHook;
+          mkShell "openssl" packageVersion versionLabel myPackages opensslBuildInputs myShellHook;
 
         defineOpenjdkDevShell =
-          openjdkVersion: shellPackages:
+          packageVersion: shellPackages:
           let
-            versionLabel = getVersionLabel openjdkVersion;
+            versionLabel = getVersionLabel packageVersion;
             extraPackages = [ ]; # to be overridden
             openjdkBuildInputs = [ ];
             myShellHook = openjdkDevShellHookCommon;
@@ -490,12 +490,12 @@
             ++ shellPackages
             ++ extraPackages;
           in
-          mkShell "openjdk" openjdkVersion versionLabel myPackages openjdkBuildInputs myShellHook;
+          mkShell "openjdk" packageVersion versionLabel myPackages openjdkBuildInputs myShellHook;
 
         defineGoDevShell =
-          goVersion:
+          packageVersion:
           let
-            versionLabel = getVersionLabel goVersion;
+            versionLabel = getVersionLabel packageVersion;
             extraPackages = [ ]; # to be overridden
             goBuildInputs = [ ];
             myShellHook = goDevShellHookCommon;
@@ -505,12 +505,12 @@
             ]
             ++ extraPackages;
           in
-          mkShell "go" goVersion versionLabel myPackages goBuildInputs myShellHook;
+          mkShell "go" packageVersion versionLabel myPackages goBuildInputs myShellHook;
 
         defineLlvmClangDevShell =
-          llvmClangVersion:
+          packageVersion:
           let
-            versionLabel = getVersionLabel llvmClangVersion;
+            versionLabel = getVersionLabel packageVersion;
             extraPackages = [ ]; # to be overridden
             llvmClangBuildInputs = [ ];
             myShellHook = llvmClangDevShellHookCommon;
@@ -521,7 +521,7 @@
             ]
             ++ extraPackages;
           in
-          mkShell "llvm-clang" llvmClangVersion versionLabel myPackages llvmClangBuildInputs myShellHook;
+          mkShell "llvm-clang" packageVersion versionLabel myPackages llvmClangBuildInputs myShellHook;
 
         mkShell =
           myName: myVersion: myLabel: myPackages: myBuildInputs: myShellHook:
@@ -553,55 +553,55 @@
             '';
           };
 
-        getRustDevShell = rustVersion: {
-          "rust-${getVersionLabel rustVersion}" = defineRustDevShell rustVersion;
+        getRustDevShell = packageVersion: {
+          "rust-${getVersionLabel packageVersion}" = defineRustDevShell packageVersion;
         };
 
-        getRustPackage = rustVersion: {
-          "rust-${getVersionLabel rustVersion}" = defineRustPackage rustVersion;
+        getRustPackage = packageVersion: {
+          "rust-${getVersionLabel packageVersion}" = defineRustPackage packageVersion;
         };
 
-        getOpenjdkPackage = openjdkVersion: {
-          "openjdk${getVersionLabel openjdkVersion}_headless" = defineOpenjdkHeadlessPackage openjdkVersion;
-          "openjdk${getVersionLabel openjdkVersion}" = defineOpenjdkPackage openjdkVersion;
+        getOpenjdkPackage = packageVersion: {
+          "openjdk${getVersionLabel packageVersion}_headless" = defineOpenjdkHeadlessPackage packageVersion;
+          "openjdk${getVersionLabel packageVersion}" = defineOpenjdkPackage packageVersion;
         };
 
-        getGoPackage = goVersion: {
-          "go_${getVersionLabel goVersion}" = defineGoPackage goVersion;
+        getGoPackage = packageVersion: {
+          "go_${getVersionLabel packageVersion}" = defineGoPackage packageVersion;
         };
 
-        getLlvmPackage = llvmVersion: {
-          "llvm_${getVersionLabel llvmVersion}" = defineLlvmPackage llvmVersion;
+        getLlvmPackage = packageVersion: {
+          "llvm_${getVersionLabel packageVersion}" = defineLlvmPackage packageVersion;
         };
 
-        getClangPackage = clangVersion: {
-          "clang_${getVersionLabel clangVersion}" = defineClangPackage clangVersion;
+        getClangPackage = packageVersion: {
+          "clang_${getVersionLabel packageVersion}" = defineClangPackage packageVersion;
         };
 
-        getOpensslDevShell = opensslVersion: {
-          "openssl-${getVersionLabel opensslVersion}" = defineOpensslDevShell opensslVersion;
+        getOpensslDevShell = packageVersion: {
+          "openssl-${getVersionLabel packageVersion}" = defineOpensslDevShell packageVersion;
         };
 
         getOpenjdkDevShell =
-          openjdkVersion:
+          packageVersion:
           let
-            versionLabel = getVersionLabel openjdkVersion;
+            versionLabel = getVersionLabel packageVersion;
           in
           {
-            "openjdk${versionLabel}_headless" = defineOpenjdkDevShell openjdkVersion [
+            "openjdk${versionLabel}_headless" = defineOpenjdkDevShell packageVersion [
               self.packages.${system}."openjdk${versionLabel}_headless"
             ];
-            "openjdk${versionLabel}" = defineOpenjdkDevShell openjdkVersion [
+            "openjdk${versionLabel}" = defineOpenjdkDevShell packageVersion [
               self.packages.${system}."openjdk${versionLabel}"
             ];
           };
 
-        getGoDevShell = goVersion: {
-          "go_${getVersionLabel goVersion}" = defineGoDevShell goVersion;
+        getGoDevShell = packageVersion: {
+          "go_${getVersionLabel packageVersion}" = defineGoDevShell packageVersion;
         };
 
-        getLlvmClangShell = llvmClangVersion: {
-          "llvm-clang-${getVersionLabel llvmClangVersion}" = defineLlvmClangDevShell llvmClangVersion;
+        getLlvmClangShell = packageVersion: {
+          "llvm-clang-${getVersionLabel packageVersion}" = defineLlvmClangDevShell packageVersion;
         };
 
         extend = lhs: rhs: lhs // rhs;
