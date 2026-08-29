@@ -126,6 +126,15 @@
           ];
 
           llvmClangLabels = builtins.map getVersionLabel context.llvmClangVersions;
+
+          gccVersions = [
+            "13"
+            "14"
+            "15"
+            "16"
+          ];
+
+          gccLabels = builtins.map getVersionLabel context.gccVersions;
         };
 
         overlays = [ (import rust-overlay) ];
@@ -425,6 +434,12 @@
           printf "\n"
         '';
 
+        gccDevShellHookCommon = ''
+          gcc --version
+          g++ --version
+          printf "\n"
+        '';
+
         getVersionLabel =
           packageVersion:
           let
@@ -444,6 +459,8 @@
         defineLlvmPackage = packageVersion: pkgs."llvm_${packageVersion}";
 
         defineClangPackage = packageVersion: pkgs."clang_${packageVersion}";
+
+        defineGccPackage = packageVersion: pkgs."gcc${packageVersion}";
 
         defineRustDevShell =
           packageVersion:
@@ -523,6 +540,21 @@
           in
           mkShell "llvm-clang" packageVersion versionLabel myPackages llvmClangBuildInputs myShellHook;
 
+        defineGccDevShell =
+          packageVersion:
+          let
+            versionLabel = getVersionLabel packageVersion;
+            extraPackages = [ ]; # to be overridden
+            gccBuildInputs = [ ];
+            myShellHook = gccDevShellHookCommon;
+            myPackages = [
+              toolBundle
+              self.packages.${system}."gcc${versionLabel}"
+            ]
+            ++ extraPackages;
+          in
+          mkShell "gcc" packageVersion versionLabel myPackages gccBuildInputs myShellHook;
+
         mkShell =
           myName: myVersion: myLabel: myPackages: myBuildInputs: myShellHook:
           pkgs.mkShell rec {
@@ -578,6 +610,10 @@
           "clang_${getVersionLabel packageVersion}" = defineClangPackage packageVersion;
         };
 
+        getGccPackage = packageVersion: {
+          "gcc${getVersionLabel packageVersion}" = defineGccPackage packageVersion;
+        };
+
         getOpensslDevShell = packageVersion: {
           "openssl-${getVersionLabel packageVersion}" = defineOpensslDevShell packageVersion;
         };
@@ -602,6 +638,10 @@
 
         getLlvmClangShell = packageVersion: {
           "llvm-clang-${getVersionLabel packageVersion}" = defineLlvmClangDevShell packageVersion;
+        };
+
+        getGccShell = packageVersion: {
+          "gcc${getVersionLabel packageVersion}" = defineGccDevShell packageVersion;
         };
 
         extend = lhs: rhs: lhs // rhs;
@@ -633,6 +673,10 @@
           builtins.map (name: getClangPackage name) context.llvmClangVersions
         );
 
+        getGccPackages = pkgs.lib.foldl extend tmpPackages (
+          builtins.map (name: getGccPackage name) context.gccVersions
+        );
+
         getOpensslDevShells = pkgs.lib.foldl extend tmpShells (
           builtins.map (name: getOpensslDevShell name) context.opensslVersions
         );
@@ -647,6 +691,10 @@
 
         getLlvmClangDevShells = pkgs.lib.foldl extend tmpShells (
           builtins.map (name: getLlvmClangShell name) context.llvmClangVersions
+        );
+
+        getGccDevShells = pkgs.lib.foldl extend tmpShells (
+          builtins.map (name: getGccShell name) context.gccVersions
         );
 
         opensslPackages = {
@@ -745,6 +793,7 @@
                 cargo
                 clang
                 clippy
+                gcc_latest
                 go_latest
                 llvm
                 openjdk25_headless
@@ -770,6 +819,7 @@
               ${pkgs.lib.getExe pkgs.tree} "${toolBundle}"
               printf "\n"
 
+              gcc --version
               clang --version
               llvm-strings --version
               printf "\n"
@@ -792,7 +842,8 @@
         // getOpensslDevShells
         // getOpenjdkDevShells
         // getGoDevShells
-        // getLlvmClangDevShells;
+        // getLlvmClangDevShells
+        // getGccDevShells;
 
         packages = {
           default = toolBundle;
@@ -804,7 +855,8 @@
         // getOpenjdkPackages
         // getGoPackages
         // getLlvmPackages
-        // getClangPackages;
+        // getClangPackages
+        // getGccPackages;
 
         apps = {
           default = self.apps.${system}.flakeShowUsage;
