@@ -135,6 +135,15 @@
           ];
 
           gccLabels = builtins.map getVersionLabel context.gccVersions;
+
+          gfortranVersions = [
+            "13"
+            "14"
+            "15"
+            "16"
+          ];
+
+          gfortranLabels = builtins.map getVersionLabel context.gfortranVersions;
         };
 
         overlays = [ (import rust-overlay) ];
@@ -440,6 +449,11 @@
           printf "\n"
         '';
 
+        gfortranDevShellHookCommon = ''
+          gfortran --version
+          printf "\n"
+        '';
+
         getVersionLabel =
           packageVersion:
           let
@@ -461,6 +475,8 @@
         defineClangPackage = packageVersion: pkgs."clang_${packageVersion}";
 
         defineGccPackage = packageVersion: pkgs."gcc${packageVersion}";
+
+        defineGfortranPackage = packageVersion: pkgs."gfortran${packageVersion}";
 
         defineRustDevShell =
           packageVersion:
@@ -555,6 +571,21 @@
           in
           mkShell "gcc" packageVersion versionLabel myPackages gccBuildInputs myShellHook;
 
+        defineGfortranDevShell =
+          packageVersion:
+          let
+            versionLabel = getVersionLabel packageVersion;
+            extraPackages = [ ]; # to be overridden
+            gfortranBuildInputs = [ ];
+            myShellHook = gfortranDevShellHookCommon;
+            myPackages = [
+              toolBundle
+              self.packages.${system}."gfortran${versionLabel}"
+            ]
+            ++ extraPackages;
+          in
+          mkShell "gfortran" packageVersion versionLabel myPackages gfortranBuildInputs myShellHook;
+
         mkShell =
           myName: myVersion: myLabel: myPackages: myBuildInputs: myShellHook:
           pkgs.mkShell rec {
@@ -614,6 +645,10 @@
           "gcc${getVersionLabel packageVersion}" = defineGccPackage packageVersion;
         };
 
+        getGfortranPackage = packageVersion: {
+          "gfortran${getVersionLabel packageVersion}" = defineGfortranPackage packageVersion;
+        };
+
         getOpensslDevShell = packageVersion: {
           "openssl-${getVersionLabel packageVersion}" = defineOpensslDevShell packageVersion;
         };
@@ -642,6 +677,10 @@
 
         getGccShell = packageVersion: {
           "gcc${getVersionLabel packageVersion}" = defineGccDevShell packageVersion;
+        };
+
+        getGfortranShell = packageVersion: {
+          "gfortran${getVersionLabel packageVersion}" = defineGfortranDevShell packageVersion;
         };
 
         extend = lhs: rhs: lhs // rhs;
@@ -677,6 +716,10 @@
           builtins.map (name: getGccPackage name) context.gccVersions
         );
 
+        getGfortranPackages = pkgs.lib.foldl extend tmpPackages (
+          builtins.map (name: getGfortranPackage name) context.gfortranVersions
+        );
+
         getOpensslDevShells = pkgs.lib.foldl extend tmpShells (
           builtins.map (name: getOpensslDevShell name) context.opensslVersions
         );
@@ -695,6 +738,10 @@
 
         getGccDevShells = pkgs.lib.foldl extend tmpShells (
           builtins.map (name: getGccShell name) context.gccVersions
+        );
+
+        getGfortranDevShells = pkgs.lib.foldl extend tmpShells (
+          builtins.map (name: getGfortranShell name) context.gfortranVersions
         );
 
         opensslPackages = {
@@ -794,6 +841,7 @@
                 clang
                 clippy
                 gcc_latest
+                gfortran16
                 go_latest
                 llvm
                 openjdk25_headless
@@ -820,6 +868,7 @@
               printf "\n"
 
               gcc --version
+              gfortran --version
               clang --version
               llvm-strings --version
               printf "\n"
@@ -843,7 +892,8 @@
         // getOpenjdkDevShells
         // getGoDevShells
         // getLlvmClangDevShells
-        // getGccDevShells;
+        // getGccDevShells
+        // getGfortranDevShells;
 
         packages = {
           default = toolBundle;
@@ -856,7 +906,8 @@
         // getGoPackages
         // getLlvmPackages
         // getClangPackages
-        // getGccPackages;
+        // getGccPackages
+        // getGfortranPackages;
 
         apps = {
           default = self.apps.${system}.flakeShowUsage;
