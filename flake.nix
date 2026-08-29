@@ -436,6 +436,9 @@
           packageVersion: pkgs.rust-bin.stable."${packageVersion}".default # or .minimal
         ;
 
+        defineOpenjdkHeadlessPackage = packageVersion: pkgs."openjdk${packageVersion}_headless";
+        defineOpenjdkPackage = packageVersion: pkgs."openjdk${packageVersion}";
+
         defineGoPackage = packageVersion: pkgs."go_${packageVersion}";
 
         defineLlvmPackage = packageVersion: pkgs."llvm_${packageVersion}";
@@ -475,7 +478,7 @@
           mkShell "openssl" opensslVersion versionLabel myPackages opensslBuildInputs myShellHook;
 
         defineOpenjdkDevShell =
-          openjdkVersion:
+          openjdkVersion: shellPackages:
           let
             versionLabel = getVersionLabel openjdkVersion;
             extraPackages = [ ]; # to be overridden
@@ -483,8 +486,8 @@
             myShellHook = openjdkDevShellHookCommon;
             myPackages = [
               toolBundle
-              self.packages.${system}."openjdk${versionLabel}"
             ]
+            ++ shellPackages
             ++ extraPackages;
           in
           mkShell "openjdk" openjdkVersion versionLabel myPackages openjdkBuildInputs myShellHook;
@@ -558,6 +561,11 @@
           "rust-${getVersionLabel rustVersion}" = defineRustPackage rustVersion;
         };
 
+        getOpenjdkPackage = openjdkVersion: {
+          "openjdk${getVersionLabel openjdkVersion}_headless" = defineOpenjdkHeadlessPackage openjdkVersion;
+          "openjdk${getVersionLabel openjdkVersion}" = defineOpenjdkPackage openjdkVersion;
+        };
+
         getGoPackage = goVersion: {
           "go_${getVersionLabel goVersion}" = defineGoPackage goVersion;
         };
@@ -574,9 +582,19 @@
           "openssl-${getVersionLabel opensslVersion}" = defineOpensslDevShell opensslVersion;
         };
 
-        getOpenjdkDevShell = openjdkVersion: {
-          "openjdk-${getVersionLabel openjdkVersion}" = defineOpenjdkDevShell openjdkVersion;
-        };
+        getOpenjdkDevShell =
+          openjdkVersion:
+          let
+            versionLabel = getVersionLabel openjdkVersion;
+          in
+          {
+            "openjdk${versionLabel}_headless" = defineOpenjdkDevShell openjdkVersion [
+              self.packages.${system}."openjdk${versionLabel}_headless"
+            ];
+            "openjdk${versionLabel}" = defineOpenjdkDevShell openjdkVersion [
+              self.packages.${system}."openjdk${versionLabel}"
+            ];
+          };
 
         getGoDevShell = goVersion: {
           "go_${getVersionLabel goVersion}" = defineGoDevShell goVersion;
@@ -597,6 +615,10 @@
 
         getRustPackages = pkgs.lib.foldl extend tmpPackages (
           builtins.map (name: getRustPackage name) context.rustVersions
+        );
+
+        getOpenjdkPackages = pkgs.lib.foldl extend tmpPackages (
+          builtins.map (name: getOpenjdkPackage name) context.openjdkVersions
         );
 
         getGoPackages = pkgs.lib.foldl extend tmpPackages (
@@ -682,14 +704,6 @@
             for p in ${self.packages.${system}.openssl-1_0}/bin/*; do ln -sv "$p" $(basename "$p")-1.0; done
             ls -lh "$out/bin"
           '';
-        };
-
-        openjdkPackages = {
-          openjdk8 = pkgs.openjdk8_headless;
-          openjdk11 = pkgs.openjdk11_headless;
-          openjdk17 = pkgs.openjdk17_headless;
-          openjdk21 = pkgs.openjdk21_headless;
-          openjdk25 = pkgs.openjdk25_headless;
         };
 
         toolBundle = pkgs.buildEnv {
@@ -807,7 +821,7 @@
         // generatePackagesFromScripts
         // getRustPackages
         // opensslPackages
-        // openjdkPackages
+        // getOpenjdkPackages
         // getGoPackages
         // getLlvmPackages
         // getClangPackages;
