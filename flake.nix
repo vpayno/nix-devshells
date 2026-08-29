@@ -109,6 +109,14 @@
 
           openjdkLabels = builtins.map getVersionLabel context.openjdkVersions;
 
+          goVersions = [
+            "1_25"
+            "1_26"
+            "1_27"
+          ];
+
+          goLabels = builtins.map getVersionLabel context.goVersions;
+
           llvmClangVersions = [
             "18"
             "19"
@@ -406,6 +414,11 @@
           printf "\n"
         '';
 
+        goDevShellHookCommon = ''
+          go version
+          printf "\n"
+        '';
+
         llvmClangDevShellHookCommon = ''
           clang --version
           llvm-strings --version
@@ -422,6 +435,8 @@
         defineRustPackage =
           packageVersion: pkgs.rust-bin.stable."${packageVersion}".default # or .minimal
         ;
+
+        defineGoPackage = packageVersion: pkgs."go_${packageVersion}";
 
         defineLlvmPackage = packageVersion: pkgs."llvm_${packageVersion}";
 
@@ -473,6 +488,21 @@
             ++ extraPackages;
           in
           mkShell "openjdk" openjdkVersion versionLabel myPackages openjdkBuildInputs myShellHook;
+
+        defineGoDevShell =
+          goVersion:
+          let
+            versionLabel = getVersionLabel goVersion;
+            extraPackages = [ ]; # to be overridden
+            goBuildInputs = [ ];
+            myShellHook = goDevShellHookCommon;
+            myPackages = [
+              toolBundle
+              self.packages.${system}."go_${versionLabel}"
+            ]
+            ++ extraPackages;
+          in
+          mkShell "go" goVersion versionLabel myPackages goBuildInputs myShellHook;
 
         defineLlvmClangDevShell =
           llvmClangVersion:
@@ -528,6 +558,10 @@
           "rust-${getVersionLabel rustVersion}" = defineRustPackage rustVersion;
         };
 
+        getGoPackage = goVersion: {
+          "go_${getVersionLabel goVersion}" = defineGoPackage goVersion;
+        };
+
         getLlvmPackage = llvmVersion: {
           "llvm_${getVersionLabel llvmVersion}" = defineLlvmPackage llvmVersion;
         };
@@ -542,6 +576,10 @@
 
         getOpenjdkDevShell = openjdkVersion: {
           "openjdk-${getVersionLabel openjdkVersion}" = defineOpenjdkDevShell openjdkVersion;
+        };
+
+        getGoDevShell = goVersion: {
+          "go_${getVersionLabel goVersion}" = defineGoDevShell goVersion;
         };
 
         getLlvmClangShell = llvmClangVersion: {
@@ -561,6 +599,10 @@
           builtins.map (name: getRustPackage name) context.rustVersions
         );
 
+        getGoPackages = pkgs.lib.foldl extend tmpPackages (
+          builtins.map (name: getGoPackage name) context.goVersions
+        );
+
         getLlvmPackages = pkgs.lib.foldl extend tmpPackages (
           builtins.map (name: getLlvmPackage name) context.llvmClangVersions
         );
@@ -575,6 +617,10 @@
 
         getOpenjdkDevShells = pkgs.lib.foldl extend tmpShells (
           builtins.map (name: getOpenjdkDevShell name) context.openjdkVersions
+        );
+
+        getGoDevShells = pkgs.lib.foldl extend tmpShells (
+          builtins.map (name: getGoDevShell name) context.goVersions
         );
 
         getLlvmClangDevShells = pkgs.lib.foldl extend tmpShells (
@@ -636,10 +682,6 @@
             for p in ${self.packages.${system}.openssl-1_0}/bin/*; do ln -sv "$p" $(basename "$p")-1.0; done
             ls -lh "$out/bin"
           '';
-        };
-
-        goPackages = {
-          go-1_26 = pkgs.go;
         };
 
         openjdkPackages = {
@@ -709,7 +751,7 @@
                 cargo
                 clang
                 clippy
-                go
+                go_latest
                 llvm
                 openjdk25_headless
                 openssl_3_5
@@ -755,17 +797,18 @@
         // getRustDevShells
         // getOpensslDevShells
         // getOpenjdkDevShells
+        // getGoDevShells
         // getLlvmClangDevShells;
 
         packages = {
           default = toolBundle;
           openssl-bundle = opensslBundle;
-          inherit (pkgs) go;
         }
         // generatePackagesFromScripts
         // getRustPackages
         // opensslPackages
         // openjdkPackages
+        // getGoPackages
         // getLlvmPackages
         // getClangPackages;
 
