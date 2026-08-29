@@ -108,6 +108,16 @@
           ];
 
           openjdkLabels = builtins.map getVersionLabel context.openjdkVersions;
+
+          llvmClangVersions = [
+            "18"
+            "19"
+            "20"
+            "21"
+            "22"
+          ];
+
+          llvmClangLabels = builtins.map getVersionLabel context.llvmClangVersions;
         };
 
         overlays = [ (import rust-overlay) ];
@@ -396,6 +406,12 @@
           printf "\n"
         '';
 
+        llvmClangDevShellHookCommon = ''
+          clang --version
+          llvm-strings --version
+          printf "\n"
+        '';
+
         getVersionLabel =
           packageVersion:
           let
@@ -406,6 +422,10 @@
         defineRustPackage =
           packageVersion: pkgs.rust-bin.stable."${packageVersion}".default # or .minimal
         ;
+
+        defineLlvmPackage = packageVersion: pkgs."llvm_${packageVersion}";
+
+        defineClangPackage = packageVersion: pkgs."clang_${packageVersion}";
 
         defineRustDevShell =
           rustVersion:
@@ -454,6 +474,22 @@
           in
           mkShell "openjdk" openjdkVersion versionLabel myPackages openjdkBuildInputs myShellHook;
 
+        defineLlvmClangDevShell =
+          llvmClangVersion:
+          let
+            versionLabel = getVersionLabel llvmClangVersion;
+            extraPackages = [ ]; # to be overridden
+            llvmClangBuildInputs = [ ];
+            myShellHook = llvmClangDevShellHookCommon;
+            myPackages = [
+              toolBundle
+              self.packages.${system}."llvm_${versionLabel}"
+              self.packages.${system}."clang_${versionLabel}"
+            ]
+            ++ extraPackages;
+          in
+          mkShell "llvm-clang" llvmClangVersion versionLabel myPackages llvmClangBuildInputs myShellHook;
+
         mkShell =
           myName: myVersion: myLabel: myPackages: myBuildInputs: myShellHook:
           pkgs.mkShell rec {
@@ -492,12 +528,24 @@
           "rust-${getVersionLabel rustVersion}" = defineRustPackage rustVersion;
         };
 
+        getLlvmPackage = llvmVersion: {
+          "llvm_${getVersionLabel llvmVersion}" = defineLlvmPackage llvmVersion;
+        };
+
+        getClangPackage = clangVersion: {
+          "clang_${getVersionLabel clangVersion}" = defineClangPackage clangVersion;
+        };
+
         getOpensslDevShell = opensslVersion: {
           "openssl-${getVersionLabel opensslVersion}" = defineOpensslDevShell opensslVersion;
         };
 
         getOpenjdkDevShell = openjdkVersion: {
           "openjdk-${getVersionLabel openjdkVersion}" = defineOpenjdkDevShell openjdkVersion;
+        };
+
+        getLlvmClangShell = llvmClangVersion: {
+          "llvm-clang-${getVersionLabel llvmClangVersion}" = defineLlvmClangDevShell llvmClangVersion;
         };
 
         extend = lhs: rhs: lhs // rhs;
@@ -513,12 +561,24 @@
           builtins.map (name: getRustPackage name) context.rustVersions
         );
 
+        getLlvmPackages = pkgs.lib.foldl extend tmpPackages (
+          builtins.map (name: getLlvmPackage name) context.llvmClangVersions
+        );
+
+        getClangPackages = pkgs.lib.foldl extend tmpPackages (
+          builtins.map (name: getClangPackage name) context.llvmClangVersions
+        );
+
         getOpensslDevShells = pkgs.lib.foldl extend tmpShells (
           builtins.map (name: getOpensslDevShell name) context.opensslVersions
         );
 
         getOpenjdkDevShells = pkgs.lib.foldl extend tmpShells (
           builtins.map (name: getOpenjdkDevShell name) context.openjdkVersions
+        );
+
+        getLlvmClangDevShells = pkgs.lib.foldl extend tmpShells (
+          builtins.map (name: getLlvmClangShell name) context.llvmClangVersions
         );
 
         opensslPackages = {
@@ -618,6 +678,26 @@
             done
           '';
         };
+
+        llvmPackages = {
+          inherit (pkgs)
+            llvm_18
+            llvm_19
+            llvm_20
+            llvm_21
+            llvm_22
+            ;
+        };
+
+        clangPackages = {
+          inherit (pkgs)
+            clang_18
+            clang_19
+            clang_20
+            clang_21
+            clang_22
+            ;
+        };
       in
       {
         devShells = {
@@ -627,8 +707,10 @@
               [
                 bashInteractive
                 cargo
+                clang
                 clippy
                 go
+                llvm
                 openjdk25_headless
                 openssl_3_5
                 rustc
@@ -652,6 +734,9 @@
               ${pkgs.lib.getExe pkgs.tree} "${toolBundle}"
               printf "\n"
 
+              clang --version
+              llvm-strings --version
+              printf "\n"
               go version
               printf "\n"
               java -version
@@ -669,7 +754,8 @@
         }
         // getRustDevShells
         // getOpensslDevShells
-        // getOpenjdkDevShells;
+        // getOpenjdkDevShells
+        // getLlvmClangDevShells;
 
         packages = {
           default = toolBundle;
@@ -679,7 +765,9 @@
         // generatePackagesFromScripts
         // getRustPackages
         // opensslPackages
-        // openjdkPackages;
+        // openjdkPackages
+        // getLlvmPackages
+        // getClangPackages;
 
         apps = {
           default = self.apps.${system}.flakeShowUsage;
