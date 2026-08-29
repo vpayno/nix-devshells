@@ -734,26 +734,6 @@
             done
           '';
         };
-
-        llvmPackages = {
-          inherit (pkgs)
-            llvm_18
-            llvm_19
-            llvm_20
-            llvm_21
-            llvm_22
-            ;
-        };
-
-        clangPackages = {
-          inherit (pkgs)
-            clang_18
-            clang_19
-            clang_20
-            clang_21
-            clang_22
-            ;
-        };
       in
       {
         devShells = {
