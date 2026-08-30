@@ -525,6 +525,21 @@
           in
           mkShell "openssl-" packageVersion versionLabel myPackages opensslBuildInputs myShellHook;
 
+        defineOpenjdkHeadlessDevShell =
+          packageVersion: shellPackages:
+          let
+            versionLabel = getVersionLabel packageVersion;
+            extraPackages = [ ]; # to be overridden
+            openjdkBuildInputs = [ ];
+            myShellHook = openjdkDevShellHookCommon;
+            myPackages = [
+              toolBundle
+            ]
+            ++ shellPackages
+            ++ extraPackages;
+          in
+          mkShell "openjdk-headless-" packageVersion versionLabel myPackages openjdkBuildInputs myShellHook;
+
         defineOpenjdkDevShell =
           packageVersion: shellPackages:
           let
@@ -693,10 +708,10 @@
             versionLabel = getVersionLabel packageVersion;
           in
           {
-            "openjdk${versionLabel}_headless" = defineOpenjdkDevShell packageVersion [
+            "openjdk-headles-${versionLabel}" = defineOpenjdkHeadlessDevShell packageVersion [
               self.packages.${system}."openjdk${versionLabel}_headless"
             ];
-            "openjdk${versionLabel}" = defineOpenjdkDevShell packageVersion [
+            "openjdk-${versionLabel}" = defineOpenjdkDevShell packageVersion [
               self.packages.${system}."openjdk${versionLabel}"
             ];
           };

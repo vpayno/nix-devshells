@@ -48,16 +48,16 @@ Available nix-devshells-20260829.1.1 flake commands:
   nix develop .#mpich2-gcc14               # mpich2-gcc14
   nix develop .#mpich2-gcc15               # mpich2-gcc15
   nix develop .#mpich2-gcc16               # mpich2-gcc16
-  nix develop .#openjdk11                  # openjdk-11
-  nix develop .#openjdk11_headless         # openjdk-11
-  nix develop .#openjdk17                  # openjdk-17
-  nix develop .#openjdk17_headless         # openjdk-17
-  nix develop .#openjdk21                  # openjdk-21
-  nix develop .#openjdk21_headless         # openjdk-21
-  nix develop .#openjdk25                  # openjdk-25
-  nix develop .#openjdk25_headless         # openjdk-25
-  nix develop .#openjdk8                   # openjdk-8
-  nix develop .#openjdk8_headless          # openjdk-8
+  nix develop .#openjdk-11                 # openjdk-11
+  nix develop .#openjdk-17                 # openjdk-17
+  nix develop .#openjdk-21                 # openjdk-21
+  nix develop .#openjdk-25                 # openjdk-25
+  nix develop .#openjdk-8                  # openjdk-8
+  nix develop .#openjdk-headles-11         # openjdk-headless-11
+  nix develop .#openjdk-headles-17         # openjdk-headless-17
+  nix develop .#openjdk-headles-21         # openjdk-headless-21
+  nix develop .#openjdk-headles-25         # openjdk-headless-25
+  nix develop .#openjdk-headles-8          # openjdk-headless-8
   nix develop .#openssl-1_0                # openssl-1_0
   nix develop .#openssl-1_1                # openssl-1_1
   nix develop .#openssl-3_0                # openssl-3_0
