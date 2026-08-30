@@ -21,7 +21,7 @@ Example output:
 ```text
 $ nix run .#default
 
-Available nix-devshells-20260829.1.0 flake commands:
+Available nix-devshells-20260829.1.1 flake commands:
 
   nix run .#flakeShowUsage | .#default     # this message
 
