@@ -147,7 +147,10 @@
           gfortranLabels = builtins.map getVersionLabel context.gfortranVersions;
         };
 
-        overlays = [ (import rust-overlay) ];
+        overlays = [
+          (import rust-overlay)
+          self.overlays.mpi
+        ];
 
         pkgs = import nixpkgs {
           inherit system overlays;
@@ -459,6 +462,11 @@
           printf "\n"
         '';
 
+        mpichDevShellHookCommon = ''
+          mpichversion
+          printf "\n"
+        '';
+
         getVersionLabel =
           packageVersion:
           let
@@ -482,6 +490,8 @@
         defineGccPackage = packageVersion: pkgs."gcc${packageVersion}";
 
         defineGfortranPackage = packageVersion: pkgs."gfortran${packageVersion}";
+
+        defineMpichPackage = packageVersion: pkgs."mpich2-gcc${packageVersion}";
 
         defineRustDevShell =
           packageVersion:
@@ -591,6 +601,22 @@
           in
           mkShell "gfortran" packageVersion versionLabel myPackages gfortranBuildInputs myShellHook;
 
+        defineMpichDevShell =
+          packageVersion:
+          let
+            versionLabel = getVersionLabel packageVersion;
+            extraPackages = [ ]; # to be overridden
+            mpichBuildInputs = [ ];
+            myShellHook = mpichDevShellHookCommon;
+            myPackages = [
+              toolBundle
+              self.packages.${system}."mpich2-gcc${versionLabel}"
+            ]
+            ++ extraPackages;
+          in
+          mkShell "mpich2-gcc${versionLabel}" packageVersion versionLabel myPackages mpichBuildInputs
+            myShellHook;
+
         mkShell =
           myName: myVersion: myLabel: myPackages: myBuildInputs: myShellHook:
           pkgs.mkShell rec {
@@ -654,6 +680,10 @@
           "gfortran${getVersionLabel packageVersion}" = defineGfortranPackage packageVersion;
         };
 
+        getMpichPackage = packageVersion: {
+          "mpich2-gcc${getVersionLabel packageVersion}" = defineMpichPackage packageVersion;
+        };
+
         getOpensslDevShell = packageVersion: {
           "openssl-${getVersionLabel packageVersion}" = defineOpensslDevShell packageVersion;
         };
@@ -686,6 +716,10 @@
 
         getGfortranShell = packageVersion: {
           "gfortran${getVersionLabel packageVersion}" = defineGfortranDevShell packageVersion;
+        };
+
+        getMpichShell = packageVersion: {
+          "mpich2-gcc${getVersionLabel packageVersion}" = defineMpichDevShell packageVersion;
         };
 
         extend = lhs: rhs: lhs // rhs;
@@ -725,6 +759,10 @@
           builtins.map (name: getGfortranPackage name) context.gfortranVersions
         );
 
+        getMpichPackages = pkgs.lib.foldl extend tmpPackages (
+          builtins.map (name: getMpichPackage name) context.gccVersions
+        );
+
         getOpensslDevShells = pkgs.lib.foldl extend tmpShells (
           builtins.map (name: getOpensslDevShell name) context.opensslVersions
         );
@@ -747,6 +785,10 @@
 
         getGfortranDevShells = pkgs.lib.foldl extend tmpShells (
           builtins.map (name: getGfortranShell name) context.gfortranVersions
+        );
+
+        getMpichDevShells = pkgs.lib.foldl extend tmpShells (
+          builtins.map (name: getMpichShell name) context.gccVersions
         );
 
         opensslPackages = {
@@ -832,6 +874,7 @@
                 gfortran16
                 go_latest
                 llvm
+                mpich2-gcc16
                 openjdk25_headless
                 openssl_3_5
                 rustc
@@ -855,6 +898,7 @@
               ${pkgs.lib.getExe pkgs.tree} "${toolBundle}"
               printf "\n"
 
+              mpichversion
               gcc --version
               gfortran --version
               clang --version
@@ -881,7 +925,8 @@
         // getGoDevShells
         // getLlvmClangDevShells
         // getGccDevShells
-        // getGfortranDevShells;
+        // getGfortranDevShells
+        // getMpichDevShells;
 
         packages = {
           default = toolBundle;
@@ -895,12 +940,18 @@
         // getLlvmPackages
         // getClangPackages
         // getGccPackages
-        // getGfortranPackages;
+        // getGfortranPackages
+        // getMpichPackages;
 
         apps = {
           default = self.apps.${system}.flakeShowUsage;
         }
         // generateAppsFromScripts;
       }
-    );
+    )
+    // {
+      overlays = {
+        mpi = import ./overlay-mpi.nix;
+      };
+    };
 }
