@@ -508,7 +508,7 @@
             ]
             ++ extraPackages;
           in
-          mkShell "rust" packageVersion shellLabel myPackages rustBuildInputs myShellHook;
+          mkShell "rust-" packageVersion shellLabel myPackages rustBuildInputs myShellHook;
 
         defineOpensslDevShell =
           packageVersion:
@@ -523,7 +523,7 @@
             ]
             ++ extraPackages;
           in
-          mkShell "openssl" packageVersion versionLabel myPackages opensslBuildInputs myShellHook;
+          mkShell "openssl-" packageVersion versionLabel myPackages opensslBuildInputs myShellHook;
 
         defineOpenjdkDevShell =
           packageVersion: shellPackages:
@@ -538,7 +538,7 @@
             ++ shellPackages
             ++ extraPackages;
           in
-          mkShell "openjdk" packageVersion versionLabel myPackages openjdkBuildInputs myShellHook;
+          mkShell "openjdk-" packageVersion versionLabel myPackages openjdkBuildInputs myShellHook;
 
         defineGoDevShell =
           packageVersion:
@@ -553,7 +553,7 @@
             ]
             ++ extraPackages;
           in
-          mkShell "go" packageVersion versionLabel myPackages goBuildInputs myShellHook;
+          mkShell "go-" packageVersion versionLabel myPackages goBuildInputs myShellHook;
 
         defineLlvmClangDevShell =
           packageVersion:
@@ -569,7 +569,7 @@
             ]
             ++ extraPackages;
           in
-          mkShell "llvm-clang" packageVersion versionLabel myPackages llvmClangBuildInputs myShellHook;
+          mkShell "llvm-clang-" packageVersion versionLabel myPackages llvmClangBuildInputs myShellHook;
 
         defineGccDevShell =
           packageVersion:
@@ -584,7 +584,7 @@
             ]
             ++ extraPackages;
           in
-          mkShell "gcc" packageVersion versionLabel myPackages gccBuildInputs myShellHook;
+          mkShell "gcc-" packageVersion versionLabel myPackages gccBuildInputs myShellHook;
 
         defineGfortranDevShell =
           packageVersion:
@@ -599,7 +599,7 @@
             ]
             ++ extraPackages;
           in
-          mkShell "gfortran" packageVersion versionLabel myPackages gfortranBuildInputs myShellHook;
+          mkShell "gfortran-" packageVersion versionLabel myPackages gfortranBuildInputs myShellHook;
 
         defineMpichDevShell =
           packageVersion:
@@ -614,8 +614,7 @@
             ]
             ++ extraPackages;
           in
-          mkShell "mpich2-gcc${versionLabel}" packageVersion versionLabel myPackages mpichBuildInputs
-            myShellHook;
+          mkShell "mpich2-gcc" packageVersion versionLabel myPackages mpichBuildInputs myShellHook;
 
         mkShell =
           myName: myVersion: myLabel: myPackages: myBuildInputs: myShellHook:
@@ -623,7 +622,7 @@
             shellLabel = myLabel;
             pname = myName;
             version = myVersion;
-            name = "${pname}-${myLabel}";
+            name = "${myName}${myLabel}";
             packages =
               with pkgs;
               [
