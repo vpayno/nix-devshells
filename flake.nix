@@ -29,6 +29,7 @@
     nixpkgs-2411.url = "github:nixos/nixpkgs?ref=nixos-24.11";
     nixpkgs-2405.url = "github:nixos/nixpkgs?ref=nixos-24.05";
     nixpkgs-2311.url = "github:nixos/nixpkgs?ref=nixos-23.11";
+    nixpkgs-2311-darwin.url = "github:NixOS/nixpkgs/nixpkgs-23.11-darwin";
     nixpkgs-2305.url = "github:nixos/nixpkgs?ref=nixos-23.05";
     nixpkgs-2211.url = "github:nixos/nixpkgs?ref=nixos-22.11";
     nixpkgs-2205.url = "github:nixos/nixpkgs?ref=nixos-22.05";
@@ -180,6 +181,10 @@
         };
 
         pkgs-2311 = import inputs.nixpkgs-2311 {
+          inherit system;
+        };
+
+        pkgs-2311-darwin = import inputs.nixpkgs-2311-darwin {
           inherit system;
         };
 
@@ -752,16 +757,8 @@
           openssl-3_4 = pkgs-2505.openssl_3_4; # 3.4.3
           openssl-3_3 = pkgs-2411.openssl_3_3; # 3.3.3
           openssl-3_2 = pkgs-2405.openssl_3_2; # 3.2.2
-        }
-        // (
-          if pkgs.stdenv.hostPlatform.isLinux then
-            {
-              openssl-3_1 = pkgs-2311.openssl_3_1; # 3.1.6
-            }
-          else
-            { }
-        )
-        // {
+          openssl-3_1 =
+            if pkgs.stdenv.hostPlatform.isDarwin then pkgs-2311-darwin.openssl_3_1 else pkgs-2311.openssl_3_1; # 3.1.6
           openssl-3_0 = pkgs-2605.openssl_3; # 3.0.21
           openssl-1_1 = pkgs-2605.openssl_1_1; # 1.1.1w
           openssl-1_0 = pkgs-2111.openssl_1_0_2; # 1.0.2u
@@ -784,16 +781,7 @@
             for p in ${self.packages.${system}.openssl-3_4}/bin/*; do ln -sv "$p" $(basename "$p")-3.4; done
             for p in ${self.packages.${system}.openssl-3_3}/bin/*; do ln -sv "$p" $(basename "$p")-3.3; done
             for p in ${self.packages.${system}.openssl-3_2}/bin/*; do ln -sv "$p" $(basename "$p")-3.2; done
-          ''
-          + (
-            if pkgs.stdenv.hostPlatform.isLinux then
-              ''
-                for p in ${self.packages.${system}.openssl-3_1}/bin/*; do ln -sv "$p" $(basename "$p")-3.1; done
-              ''
-            else
-              ""
-          )
-          + ''
+            for p in ${self.packages.${system}.openssl-3_1}/bin/*; do ln -sv "$p" $(basename "$p")-3.1; done
             for p in ${self.packages.${system}.openssl-3_0}/bin/*; do ln -sv "$p" $(basename "$p")-3.0; done
             for p in ${self.packages.${system}.openssl-1_1}/bin/*; do ln -sv "$p" $(basename "$p")-1.1; done
             for p in ${self.packages.${system}.openssl-1_0}/bin/*; do ln -sv "$p" $(basename "$p")-1.0; done
