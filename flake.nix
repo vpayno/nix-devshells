@@ -78,7 +78,7 @@
             "1.95.0"
             "1.96.1"
             "1.97.1"
-            "1.98.0"
+            "1.98.1"
           ];
 
           rustLabels = builtins.map getVersionLabel context.rustVersions;
