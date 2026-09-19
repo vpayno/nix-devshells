@@ -111,7 +111,6 @@
           openjdkLabels = builtins.map getVersionLabel context.openjdkVersions;
 
           goVersions = [
-            "1_25"
             "1_26"
             "1_27"
           ];
