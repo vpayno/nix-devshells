@@ -274,6 +274,13 @@
             description = "Show Nix flake usage text";
           };
 
+          showLatestOpenjdkVersions = rec {
+            pname = "show-latest-openjdk-versions";
+            inherit version;
+            name = "${pname}-${version}";
+            description = "Shows the list of the latest Openjdk versions from the GitHub repos";
+          };
+
           showLatestGoVersions = rec {
             pname = "show-latest-go-versions";
             inherit version;
@@ -338,6 +345,58 @@
               printf "\n"
             '';
             meta = scriptMetadata.flakeShowUsage;
+          };
+
+          showLatestOpenjdkVersions = pkgs.writeShellApplication {
+            name = scriptMetadata.showLatestOpenjdkVersions.pname;
+            runtimeInputs = with pkgs; [
+              coreutils
+              git
+              gnused
+              gnugrep
+            ];
+            text = ''
+              declare -i count="''${1:-10}"
+              declare -a tags_jdk8=()
+              declare -a tags_jdk11=()
+              declare -a tags_jdk17=()
+              declare -a tags_jdk21=()
+              declare -a tags_jdk25=()
+
+              get_jdk8_tags() {
+                # https://wiki.openjdk.org/spaces/jdk8u/overview
+                # https://adoptium.net/temurin/releases/?version=8&os=any&arch=any
+                git -c 'versionsort.suffix=jdk' ls-remote --sort='version:refname' --tags https://github.com/openjdk/jdk8u |
+                  grep -E 'refs/tags/jdk8u[0-9]+-b[0-9]+$' | grep -v '\-b00$' | sed -r -e 's:^.*/jdk::g' | tac | head -n "''${count}"
+              }
+              get_jdk11_tags() {
+                git -c 'versionsort.suffix=jdk' ls-remote --sort='version:refname' --tags https://github.com/openjdk/jdk11u |
+                  grep -E 'refs/tags/jdk-11[.][0-9]+.*\+[0-9]+$' | sed -r -e 's:^.*/jdk-::g' | tac | head -n "''${count}"
+              }
+              get_jdk17_tags() {
+                git -c 'versionsort.suffix=jdk' ls-remote --sort='version:refname' --tags https://github.com/openjdk/jdk17u |
+                  grep -E 'refs/tags/jdk-17[.][0-9]+.*\+[0-9]+$' | sed -r -e 's:^.*/jdk-::g' | tac | head -n "''${count}"
+              }
+              get_jdk21_tags() {
+                git -c 'versionsort.suffix=jdk' ls-remote --sort='version:refname' --tags https://github.com/openjdk/jdk21u |
+                  grep -E 'refs/tags/jdk-21[.][0-9]+.*\+[0-9]+$' | sed -r -e 's:^.*/jdk-::g' | tac | head -n "''${count}"
+              }
+              get_jdk25_tags() {
+                git -c 'versionsort.suffix=jdk' ls-remote --sort='version:refname' --tags https://github.com/openjdk/jdk25u |
+                  grep -E 'refs/tags/jdk-25[.][0-9]+.*\+[0-9]+$' | sed -r -e 's:^.*/jdk-::g' | tac | head -n "''${count}"
+              }
+
+              mapfile -t tags_jdk8 < <(get_jdk8_tags)
+              mapfile -t tags_jdk11 < <(get_jdk11_tags)
+              mapfile -t tags_jdk17 < <(get_jdk17_tags)
+              mapfile -t tags_jdk21 < <(get_jdk21_tags)
+              mapfile -t tags_jdk25 < <(get_jdk25_tags)
+
+              for i in {0..9}; do
+                printf "%s  %s  %s  %s  %s\n" "''${tags_jdk8[$i]}" "''${tags_jdk11[$i]}"  "''${tags_jdk17[$i]}" "''${tags_jdk21[$i]}"  "''${tags_jdk25[$i]}"
+              done | column --table
+            '';
+            meta = scriptMetadata.showLatestOpenjdkVersions;
           };
 
           showLatestGoVersions = pkgs.writeShellApplication {
