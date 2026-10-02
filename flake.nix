@@ -366,8 +366,8 @@
             ];
             text = ''
               declare -i count="''${1:-10}"
-              git ls-remote --ref --tags git@github.com:rust-lang/rust.git | sed -r -e 's:.*tags/::g' |
-                grep -E '^[0-9]+[.][0-9]+[.][0-9]+$' | sort -Vr | head -n "''${count}"
+              git ls-remote --sort='version:refname' --ref --tags https://github.com/rust-lang/rust |
+                grep -E 'refs/tags/[0-9]+[.][0-9]+[.][0-9]+$' | sed -r -e 's:.*tags/::g' | tac | head -n "''${count}"
             '';
             meta = scriptMetadata.showLatestRustVersions;
           };
