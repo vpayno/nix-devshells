@@ -274,6 +274,13 @@
             description = "Show Nix flake usage text";
           };
 
+          showLatestGoVersions = rec {
+            pname = "show-latest-go-versions";
+            inherit version;
+            name = "${pname}-${version}";
+            description = "Shows the list of the latest Go versions from the GitHub repo";
+          };
+
           showLatestRustVersions = rec {
             pname = "show-latest-rust-versions";
             inherit version;
@@ -331,6 +338,22 @@
               printf "\n"
             '';
             meta = scriptMetadata.flakeShowUsage;
+          };
+
+          showLatestGoVersions = pkgs.writeShellApplication {
+            name = scriptMetadata.showLatestGoVersions.pname;
+            runtimeInputs = with pkgs; [
+              coreutils
+              git
+              gnused
+              gnugrep
+            ];
+            text = ''
+              declare -i count="''${1:-10}"
+              git -c 'versionsort.suffix=go' ls-remote --sort='version:refname' --tags https://github.com/golang/go |
+                grep -E 'refs/tags/go1[.][0-9]+[.][0-9]+$' | sed -r -e 's:^.*/go::g' | tac | head -n "''${count}"
+            '';
+            meta = scriptMetadata.showLatestGoVersions;
           };
 
           showLatestRustVersions = pkgs.writeShellApplication {
