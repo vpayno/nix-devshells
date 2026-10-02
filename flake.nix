@@ -69,7 +69,6 @@
           # can't decide if I want all the versions from packages.x86_64-linux.rust_1_x or just a select few
           # just adding the last 10 versions for now
           rustVersions = [
-            "1.89.0"
             "1.90.0"
             "1.91.1"
             "1.92.0"
@@ -79,6 +78,7 @@
             "1.96.1"
             "1.97.1"
             "1.98.1"
+            "1.99.0"
           ];
 
           rustLabels = builtins.map getVersionLabel context.rustVersions;
