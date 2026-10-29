@@ -101,6 +101,7 @@
 
           opensslLabels = builtins.map getVersionLabel context.opensslVersions;
 
+          # https://adoptium.net/temurin/releases/
           openjdkVersions = [
             "8"
             "11"
@@ -111,6 +112,7 @@
 
           openjdkLabels = builtins.map getVersionLabel context.openjdkVersions;
 
+          # https://endoflife.date/go
           goVersions = [
             "1_26"
             "1_27"
