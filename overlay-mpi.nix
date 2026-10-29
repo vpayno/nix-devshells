@@ -1,17 +1,17 @@
 # overlay-mpi.nix
-self: super:
+final: prev:
 let
   # TODO: look into overriding stdenv.cc
   mkMpich2WithGcc =
     mpiPackage: gccVersion:
-    super.${mpiPackage}.overrideAttrs (oldAttrs: rec {
+    prev.${mpiPackage}.overrideAttrs (oldAttrs: rec {
       pname = "mpich2-gcc${gccVersion}";
       name = "${pname}-${oldAttrs.version}";
-      gccDrv = super."gcc${gccVersion}";
-      gfortranDrv = super."gfortran${gccVersion}";
+      gccDrv = prev."gcc${gccVersion}";
+      gfortranDrv = prev."gfortran${gccVersion}";
       postInstall =
         builtins.replaceStrings
-          (with super; [
+          (with prev; [
             "${stdenv.cc}"
             "${gfortran}"
           ])
