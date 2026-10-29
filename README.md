@@ -1,12 +1,10 @@
 # nix-devshells
 
-Nix flake with `devShells` for multiple programming languages and multiple
-versions.
+Nix flake with `devShells` for multiple programming languages and multiple versions.
 
 ## linting & formatting
 
-Use `nix fmt` to lint and format the repo using
-`github:vpayno/nix-treefmt-conf`.
+Use `nix fmt` to lint and format the repo using `github:vpayno/nix-treefmt-conf`.
 
 ## usage
 
@@ -21,10 +19,12 @@ Example output:
 ```text
 $ nix run .#default
 
-Available nix-devshells-20260831.0.0 flake commands:
+Available nix-devshells-20261028.0.1 flake commands:
 
   nix run .#flakeShowUsage | .#default     # this message
 
+  nix run .#showLatestGoVersions           # Shows the list of the latest Go versions from the GitHub repo
+  nix run .#showLatestOpenjdkVersions      # Shows the list of the latest Openjdk versions from the GitHub repos
   nix run .#showLatestRustVersions         # Shows the list of the latest Rust versions from the GitHub repo
 
   nix develop .#default                    # nix-shell
@@ -36,7 +36,6 @@ Available nix-devshells-20260831.0.0 flake commands:
   nix develop .#gfortran14                 # gfortran-14
   nix develop .#gfortran15                 # gfortran-15
   nix develop .#gfortran16                 # gfortran-16
-  nix develop .#go_1_25                    # go-1_25
   nix develop .#go_1_26                    # go-1_26
   nix develop .#go_1_27                    # go-1_27
   nix develop .#llvm-clang-18              # llvm-clang-18
@@ -68,8 +67,8 @@ Available nix-devshells-20260831.0.0 flake commands:
   nix develop .#openssl-3_5                # openssl-3_5
   nix develop .#openssl-3_6                # openssl-3_6
   nix develop .#openssl-4_0                # openssl-4_0
+  nix develop .#openssl-4_1                # openssl-4_1
   nix develop .#openssl-lts                # openssl-3_5
-  nix develop .#rust-1_89                  # rust-1_89
   nix develop .#rust-1_90                  # rust-1_90
   nix develop .#rust-1_91                  # rust-1_91
   nix develop .#rust-1_92                  # rust-1_92
@@ -79,4 +78,5 @@ Available nix-devshells-20260831.0.0 flake commands:
   nix develop .#rust-1_96                  # rust-1_96
   nix develop .#rust-1_97                  # rust-1_97
   nix develop .#rust-1_98                  # rust-1_98
+  nix develop .#rust-1_99                  # rust-1_99
 ```
