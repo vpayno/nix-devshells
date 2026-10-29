@@ -896,7 +896,7 @@
           openssl-3_2 = pkgs-2405.openssl_3_2; # 3.2.2
           openssl-3_1 =
             if pkgs.stdenv.hostPlatform.isDarwin then pkgs-2311-darwin.openssl_3_1 else pkgs-2311.openssl_3_1; # 3.1.6
-          openssl-3_0 = pkgs-2605.openssl_3; # 3.0.22
+          openssl-3_0 = pkgs-2511.openssl_3; # 3.0.21
           openssl-1_1 = pkgs-2605.openssl_1_1; # 1.1.1w
           openssl-1_0 = pkgs-2111.openssl_1_0_2; # 1.0.2u
         };
