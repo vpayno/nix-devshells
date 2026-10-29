@@ -86,6 +86,7 @@
           # https://github.com/openssl/openssl/releases
           # https://endoflife.date/openssl
           opensslVersions = [
+            "4.1.0" # EOL 2027-11
             "4.0.3" # EOL 2027-05
             "3.6.5" # EOL 2026-11
             "3.5.9" # LTS, EOL 2030-04
@@ -888,6 +889,7 @@
 
         opensslPackages = {
           openssl-lts = self.packages.${system}."openssl-3_5";
+          openssl-4_1 = pkgs-2605.openssl_4_1; # 4.1.0
           openssl-4_0 = pkgs-2605.openssl_4_0; # 4.0.3
           openssl-3_6 = pkgs-2605.openssl_3_6; # 3.6.5
           openssl-3_5 = pkgs-2611.openssl_3_5; # 3.5.9
@@ -912,6 +914,7 @@
           postBuild = ''
             mkdir -pv "$out/bin"
             cd $out/bin || exit
+            for p in ${self.packages.${system}.openssl-4_1}/bin/*; do ln -sv "$p" $(basename "$p")-4_1; done
             for p in ${self.packages.${system}.openssl-4_0}/bin/*; do ln -sv "$p" $(basename "$p")-4_0; done
             for p in ${self.packages.${system}.openssl-3_6}/bin/*; do ln -sv "$p" $(basename "$p")-3.6; done
             for p in ${self.packages.${system}.openssl-3_5}/bin/*; do ln -sv "$p" $(basename "$p")-3.5; done
