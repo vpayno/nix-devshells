@@ -86,14 +86,14 @@
           # https://github.com/openssl/openssl/releases
           # https://endoflife.date/openssl
           opensslVersions = [
-            "4.0.1"
-            "3.6.3"
-            "3.5.7" # LTS, EOL 2030-04
-            "3.4.6"
-            "3.3.7"
-            "3.2.5"
-            "3.1.8"
-            "3.0.21" # LTS, EOL 2026-09
+            "4.0.3" # EOL 2027-05
+            "3.6.5" # EOL 2026-11
+            "3.5.9" # LTS, EOL 2030-04
+            "3.4.8" # EOL 2026-10
+            "3.3.7" # EOL 2026-04
+            "3.2.6" # EOL 2025-11
+            "3.1.8" # EOL 2025-03
+            "3.0.22" # LTS, EOL 2026-09
             "1.1.1w" # LTS, EOL 2023-09
             "1.0.2u" # LTS, EOL 2019-12
           ];
@@ -888,15 +888,15 @@
 
         opensslPackages = {
           openssl-lts = self.packages.${system}."openssl-3_5";
-          openssl-4_0 = pkgs-2611.openssl_4_0; # 4.0.1
-          openssl-3_6 = pkgs-2611.openssl_3_6; # 3.6.3
-          openssl-3_5 = pkgs-2611.openssl_3_5; # 3.5.7
+          openssl-4_0 = pkgs-2605.openssl_4_0; # 4.0.3
+          openssl-3_6 = pkgs-2605.openssl_3_6; # 3.6.5
+          openssl-3_5 = pkgs-2611.openssl_3_5; # 3.5.9
           openssl-3_4 = pkgs-2505.openssl_3_4; # 3.4.3
           openssl-3_3 = pkgs-2411.openssl_3_3; # 3.3.3
           openssl-3_2 = pkgs-2405.openssl_3_2; # 3.2.2
           openssl-3_1 =
             if pkgs.stdenv.hostPlatform.isDarwin then pkgs-2311-darwin.openssl_3_1 else pkgs-2311.openssl_3_1; # 3.1.6
-          openssl-3_0 = pkgs-2605.openssl_3; # 3.0.21
+          openssl-3_0 = pkgs-2605.openssl_3; # 3.0.22
           openssl-1_1 = pkgs-2605.openssl_1_1; # 1.1.1w
           openssl-1_0 = pkgs-2111.openssl_1_0_2; # 1.0.2u
         };
