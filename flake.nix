@@ -1047,6 +1047,10 @@
           default = self.apps.${system}.flakeShowUsage;
         }
         // generateAppsFromScripts;
+
+        checks = {
+        }
+        // self.packages.${system}; # add flake packages to build them as part of the checks run
       }
     )
     // {
