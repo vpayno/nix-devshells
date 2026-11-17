@@ -155,10 +155,18 @@
         ];
 
         pkgs = import nixpkgs {
-          inherit system overlays;
+          inherit system;
+          overlays = overlays ++ [
+            self.overlays.nixpkgs-2611
+          ];
         };
 
-        pkgs-2611 = pkgs;
+        pkgs-2611 = import inputs.nixpkgs-2611 {
+          inherit system;
+          overlays = [
+            self.overlays.nixpkgs-2611
+          ];
+        };
 
         pkgs-2605 = import inputs.nixpkgs-2605 {
           inherit system;
@@ -1056,6 +1064,7 @@
     // {
       overlays = {
         mpi = import ./overlay-mpi.nix;
+        nixpkgs-2611 = import ./overlay-26.11.nix;
       };
     };
 }
