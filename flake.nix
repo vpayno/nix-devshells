@@ -1058,7 +1058,8 @@
 
         checks = {
         }
-        // self.packages.${system}; # add flake packages to build them as part of the checks run
+        // self.packages.${system} # add flake packages to build them as part of the checks run
+        // self.devShells.${system}; # build all dev shells as part of the checks run
       }
     )
     // {
