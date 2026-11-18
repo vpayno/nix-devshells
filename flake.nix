@@ -471,7 +471,9 @@
           with pkgs;
           if stdenv.hostPlatform.isLinux then
             [
+              cargo-deb
               cargo-llvm-cov
+              cargo-ui
             ]
           else
             [ ];
@@ -483,7 +485,6 @@
             cargo-audit
             cargo-binutils
             cargo-bump
-            cargo-deb
             cargo-deny
             cargo-edit
             cargo-flamegraph
@@ -500,7 +501,6 @@
             cargo-spellcheck
             cargo-tarpaulin
             cargo-toml-lint
-            cargo-ui
             cargo-update
             cargo-vet
             cargo-watch
